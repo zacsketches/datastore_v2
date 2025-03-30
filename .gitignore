@@ -1,3 +1,6 @@
+# Ignore the local keypair file
+my-key-pair.*
+
 # Terraform state files
 *.tfstate
 *.tfstate.backup
