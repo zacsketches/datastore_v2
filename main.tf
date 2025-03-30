@@ -19,7 +19,7 @@ resource "aws_instance" "backend_ec2" {
   security_groups = [aws_security_group.allow_ssh.name]
 
   # Run the setup script
-  # user_data = file("instance_setup.sh")
+  user_data = file("setup.sh")
 
   # Attach EBS volume
   root_block_device {

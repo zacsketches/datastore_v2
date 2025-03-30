@@ -1,0 +1,29 @@
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Crash logs
+crash.log
+
+# Terraform plan files
+*.tfplan
+
+# Ignore CLI-related configuration files
+.terraformrc
+terraform.rc
+
+# Ignore provider-specific directories and files
+.terraform/
+
+# Ignore sensitive variable files (if used)
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Ignore any temporary files
+*.backup
+*.log
+.DS_Store
+Thumbs.db
+
+# Ignore lock files (can be useful in some cases)
+.terraform.lock.hcl
