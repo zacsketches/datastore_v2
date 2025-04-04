@@ -21,6 +21,7 @@ terraform.rc
 # Ignore sensitive variable files (if used)
 *.auto.tfvars
 *.auto.tfvars.json
+terraform.tfvars
 
 # Ignore any temporary files
 *.backup

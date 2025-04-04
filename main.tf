@@ -25,24 +25,15 @@ resource "aws_instance" "backend_ec2" {
   root_block_device {
     volume_size = 8  # Root volume (8GB)
   }
-
-  # depends_on = [aws_ebs_volume.sqlite_ebs]
 }
 
-# resource "aws_ebs_volume" "sqlite_ebs" {
-#   availability_zone = "us-east-1a"  # Ensure this matches your instance's AZ
-#   size              = 2  # 2GB EBS volume for our super small db
-#   tags = {
-#     Name = "sqlite-ebs-volume"
-#   }
-# }
+# Associate the EIP to the EC2 instance
+resource "aws_eip_association" "backend_eip_assoc" {
+  instance_id   = aws_instance.backend_ec2.id
+  allocation_id = var.eip_allocation_id
+}
 
-# resource "aws_volume_attachment" "ebs_attach" {
-#   device_name = "/dev/xvdf"
-#   volume_id   = aws_ebs_volume.sqlite_ebs.id
-#   instance_id = aws_instance.sqlite_ec2.id
-# }
-
+# Set up security groups
 resource "aws_security_group" "allow_ssh" {
   name        = "allow_ssh"
   description = "Allow SSH and webhook inbound traffic"
@@ -69,12 +60,11 @@ resource "aws_security_group" "allow_ssh" {
   }
 }
 
-output "public_ip" {
+# output "elastic_ip" {
+#   description = "The Elastic IP address associated with the EC2 instance"
+#   value       = aws_eip.backend_eip.public_ip
+# }
+output "webhook_ip" {
   description = "The public IP address of the EC2 instance"
   value       = aws_instance.backend_ec2.public_ip
 }
-
-# output "users_api_url" {
-#   description = "URL to access Flask API"
-#   value       = "http://${aws_instance.sqlite_ec2.public_ip}:5000/users"
-# }

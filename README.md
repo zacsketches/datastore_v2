@@ -11,3 +11,30 @@ This bash script is run as the EC2 `user_data` when the new VM is created. The p
 sudo -u ec2-user nohup ./myapp > /home/ec2-user/app.log 2>&1 &
 ```
 
+## Helpful Command Line Foo
+The following comands are helpful in interacting with the infrastructure during debug and testing.
+
+#### Put the elastic IP into the environment
+Most of the command line foo below is dependent on the presence of an environment variable called `EIP`.
+```
+export EIP=$(terraform output -raw webhook_ip)
+```
+
+#### EC2 fingerprint is changed
+When the background EC2 changes, but the Elastic IP stays the same, the SSH client thinks that there is a man in the middle attack. Get rid of the old fingerprint before attempting to log in.
+```
+ssh-keygen -R $EIP
+```
+
+#### Test the webhook from the command line
+This tests the default behavior, and includes the `-i` flag so we can see the CORS headers coming back from the server.
+```
+curl -i -X POST http://$EIP:8080/webhook \
+-H "Content-Type: application/json" \
+-d '{"value1": 42, "value2": 3.14}'
+```
+This tests to ensure that preflight CORS requests are functional.  The `/webhook` endpoint should log all responses, including CORS preflight.
+```
+curl -i -X OPTIONS http://<eip>:8080/webhook
+```
+

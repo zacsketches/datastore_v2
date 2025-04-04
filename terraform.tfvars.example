@@ -1,0 +1,6 @@
+# Included in version control to to show the values that must be 
+# included in a local copy of the terraform.tfvars for the IaC
+# to run correctly.  The elastic ip needs to be created out of 
+# of terraform so that apply/destroy do not impact the persistance
+# of the IP between the standup/teardown of new instances.
+eip_allocation_id = "eipalloc-xxxxxxxxxxxxxxx"
