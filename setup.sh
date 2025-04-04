@@ -12,8 +12,9 @@ set -euxo pipefail
 sudo yum update -y
 sudo yum install -y golang git
 
-# Enable Go modules (Go 1.16+ has modules enabled by default, but this ensures it)
-export GO111MODULE=on
+# GOPATH is required so later go commands can store module data
+export GOPATH=${HOME}/go
+echo $GOPATH
 
 # Define variables
 REPO_URL="https://github.com/zacsketches/webhook-handler.git"  # Replace with your repo URL
