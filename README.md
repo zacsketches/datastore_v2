@@ -35,6 +35,11 @@ curl -i -X POST http://$EIP:8080/webhook \
 ```
 This tests to ensure that preflight CORS requests are functional.  The `/webhook` endpoint should log all responses, including CORS preflight.
 ```
-curl -i -X OPTIONS http://<eip>:8080/webhook
+curl -i -X OPTIONS http://$EIP:8080/webhook
 ```
-
+Commit [27a18da](https://github.com/zacsketches/webhook-handler/commit/27a18da1a8f1fec6e302adc4a4a9852344fbe0b1) on the webhook-handler limited `Content-Type` to `application/json`. This test sends the wrong `Content-Type` and should be rejected by the `/webhook`.
+```
+curl -i -X POST http://$EIP:8080/webhook \
+-H "Content-Type: application/xml" \
+-d '<user id="123" name="Alice" />'
+```
