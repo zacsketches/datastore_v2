@@ -60,11 +60,7 @@ resource "aws_security_group" "allow_ssh" {
   }
 }
 
-# output "elastic_ip" {
-#   description = "The Elastic IP address associated with the EC2 instance"
-#   value       = aws_eip.backend_eip.public_ip
-# }
 output "webhook_ip" {
-  description = "The public IP address of the EC2 instance"
-  value       = aws_instance.backend_ec2.public_ip
+  description = "The elastic IP associated with the EC2 instance"
+  value = aws_eip_association.backend_eip_assoc.public_ip
 }
