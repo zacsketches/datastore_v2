@@ -28,11 +28,9 @@ cd /home/ec2-user
 sudo -u ec2-user git clone https://github.com/zacsketches/webhook-handler.git
 # sudo chown ec2-user webhook-handler/
 cd webhook-handler
-
-# Build the Go application with Go module support off to keep things simpler
-# export GO111MODULE=off
-# /usr/local/go/bin/go build -o myapp
-sudo -u ec2-user bash -c 'export GO111MODULE=off && /usr/local/go/bin/go build -o myapp'
+go mod tidy
+go build -o myapp
+#sudo -u ec2-user bash -c 'export GO111MODULE=off && /usr/local/go/bin/go build -o myapp'
 
 # Ensure the log file and hooks.txt file are writable
 # touch /home/ec2-user/app.log

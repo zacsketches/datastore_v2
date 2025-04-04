@@ -26,6 +26,12 @@ When the background EC2 changes, but the Elastic IP stays the same, the SSH clie
 ssh-keygen -R $EIP
 ```
 
+#### Log into the backend via ssh
+This usually requires removing the old fingerprint if the backend infra has been upgraded since the last login
+```
+ssh -i my-key-pair.pem ec2-user@$EIP
+```
+
 #### Test the webhook from the command line
 This tests the default behavior, and includes the `-i` flag so we can see the CORS headers coming back from the server.
 ```
