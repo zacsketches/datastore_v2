@@ -13,6 +13,7 @@ sudo yum update -y
 sudo yum install -y golang git
 
 # GOPATH is required so later go commands can store module data
+export HOME=/home/ec2-user
 export GOPATH=${HOME}/go
 echo $GOPATH
 
