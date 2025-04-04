@@ -1,49 +1,58 @@
 #!/bin/bash
+# This script initializes an EC2 instance to host the backend webhook service.
+# It installs dependencies, clones the repository, builds the service using Go modules,
+# and sets up a systemd service to manage the webhook process.
 
-# Sets debug mode for verbose output and exits on any error
-set -ex
+# Exit immediately if a command exits with a non-zero status,
+# treat unset variables as an error, print each command as it is executed,
+# and propagate errors in pipelines.
+set -euxo pipefail
 
-# Install required dependencies
+# Update package index and install dependencies using yum
 sudo yum update -y
-sudo yum install -y git wget unzip sqlite
+sudo yum install -y golang git
 
-# Install Go
-GO_VERSION="1.21.1"
-wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz"
-sudo tar -C /usr/local -xzf "go${GO_VERSION}.linux-amd64.tar.gz"
+# Enable Go modules (Go 1.16+ has modules enabled by default, but this ensures it)
+export GO111MODULE=on
 
-# Ensure .bashrc exists for ec2-user
-sudo -u ec2-user bash -c 'touch ~/.bashrc'
+# Define variables
+REPO_URL="https://github.com/zacsketches/webhook-handler.git"  # Replace with your repo URL
+APP_DIR="/home/ec2-user/webhook-handler"  # Change as needed (default user for Amazon Linux 2 is ec2-user)
+BINARY_NAME="webhook-service"
 
-# Append environment variables to ec2-user's .bashrc
-echo 'export PATH=$PATH:/usr/local/go/bin' | sudo tee -a /home/ec2-user/.bashrc
-echo 'export GOPATH=$HOME/go' | sudo tee -a /home/ec2-user/.bashrc
-echo 'export PATH=$PATH:$GOPATH/bin' | sudo tee -a /home/ec2-user/.bashrc
+# Clone the repository if it doesn't exist; otherwise, update it
+if [ ! -d "$APP_DIR" ]; then
+    git clone "$REPO_URL" "$APP_DIR"
+else
+    cd "$APP_DIR"
+    git pull
+fi
 
-# Ensure the changes apply to new logins
-chown ec2-user:ec2-user /home/ec2-user/.bashrc
+cd "$APP_DIR"
 
-# Clone your Go service repository
-cd /home/ec2-user
-sudo -u ec2-user git clone https://github.com/zacsketches/webhook-handler.git
-# sudo chown ec2-user webhook-handler/
-cd webhook-handler
-go mod tidy
-go build -o myapp
-#sudo -u ec2-user bash -c 'export GO111MODULE=off && /usr/local/go/bin/go build -o myapp'
+# Build the service using Go modules
+go build -o "$BINARY_NAME" .
 
-# Ensure the log file and hooks.txt file are writable
-# touch /home/ec2-user/app.log
-# chmod 666 /home/ec2-user/app.log
-# touch /home/ec2-user/hooks.txt
-# chmod 666 /home/ec2-user/hooks.txt
+# Move the binary to a directory in the system PATH
+sudo mv "$BINARY_NAME" /usr/local/bin/
 
-# Ensure the database directory exists
-# mkdir -p /mnt/sqlite-data
-# touch /mnt/sqlite-data/my_database.db
+# Create a systemd service file for the webhook service
+sudo tee /etc/systemd/system/webhook.service > /dev/null <<EOL
+[Unit]
+Description=Webhook Service
+After=network.target
 
-# Run the application as ec2-user
-sudo -u ec2-user nohup ./myapp > /home/ec2-user/app.log 2>&1 &
+[Service]
+ExecStart=/usr/local/bin/$BINARY_NAME
+Restart=always
+User=ec2-user
+WorkingDirectory=$APP_DIR
 
-# Open port 8080 for incoming HTTP traffic
-sudo iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Reload systemd, enable, and start the webhook service
+sudo systemctl daemon-reload
+sudo systemctl enable webhook.service
+sudo systemctl start webhook.service

@@ -5,11 +5,7 @@ This repo is the second iteration of creating an IaC driven AWS infrastructure f
 This terraform stands up a free tier EC2 instance using the credentials loaded into the AWS CLI on the developer's laptop. This EC2 instance provides the VM for the backend compute.
 
 ## setup.sh
-This bash script is run as the EC2 `user_data` when the new VM is created. The primary purpose of this script is to install Go and then build the microservice that serves as the webhook backend. The backend is cloned from https://github.com/zacsketches/webhook-handler. After `go build -o myapp` the webhook microservice is run with
-
-```
-sudo -u ec2-user nohup ./myapp > /home/ec2-user/app.log 2>&1 &
-```
+This bash script is run as the EC2 `user_data` when the new VM is created. The primary purpose of this script is to install Go and then build the microservice that serves as the webhook backend. The backend is cloned from https://github.com/zacsketches/webhook-handler. After `go build -o webhook-service` the new service is run under `systemd` control with restart enabled.
 
 ## Helpful Command Line Foo
 The following comands are helpful in interacting with the infrastructure during debug and testing.
@@ -20,7 +16,7 @@ Most of the command line foo below is dependent on the presence of an environmen
 export EIP=$(terraform output -raw webhook_ip)
 ```
 
-#### EC2 fingerprint is changed
+#### Clear the EC2 fingerprint hash
 When the background EC2 changes, but the Elastic IP stays the same, the SSH client thinks that there is a man in the middle attack. Get rid of the old fingerprint before attempting to log in.
 ```
 ssh-keygen -R $EIP
@@ -30,6 +26,12 @@ ssh-keygen -R $EIP
 This usually requires removing the old fingerprint if the backend infra has been upgraded since the last login
 ```
 ssh -i my-key-pair.pem ec2-user@$EIP
+```
+
+#### Inspect the system log when the EC2 was built
+I'm building the Go backend service on the EC2 box when it is stood up by terraform. So, this sometimes fails to build if the program has an error in it. To see the log I need to look at the system log on the EC2 box that is generate when AWS stands it up. 
+```
+sudo cat /var/log/cloud-init-output.log
 ```
 
 #### Test the webhook from the command line
