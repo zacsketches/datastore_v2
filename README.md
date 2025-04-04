@@ -28,6 +28,12 @@ This usually requires removing the old fingerprint if the backend infra has been
 ssh -i my-key-pair.pem ec2-user@$EIP
 ```
 
+#### Follow the journalctl log of the web service
+This command implements the traditional `tail -f <log>` functioality for journalctl
+```
+sudo journalctl -u webhook.service -f
+```
+
 #### Inspect the system log when the EC2 was built
 I'm building the Go backend service on the EC2 box when it is stood up by terraform. So, this sometimes fails to build if the program has an error in it. To see the log I need to look at the system log on the EC2 box that is generate when AWS stands it up. 
 ```
