@@ -28,8 +28,8 @@ This usually requires removing the old fingerprint if the backend infra has been
 ssh -i my-key-pair.pem ec2-user@$EIP
 ```
 
-#### Follow the journalctl log of the web service
-This command implements the traditional `tail -f <log>` functioality for journalctl
+#### Follow the journald log of the web service
+This command implements the traditional `tail -f <log>` functioality for `journald`
 ```
 sudo journalctl -u webhook.service -f
 ```
