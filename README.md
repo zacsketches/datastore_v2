@@ -66,6 +66,10 @@ I'm building the Go backend service on the EC2 box when it is stood up by terraf
 ```
 sudo cat /var/log/cloud-init-output.log
 ```
+Alternatively, follow the initialization as it is happening.
+```
+sudo tail -f /var/log/cloud-init-output.log
+```
 
 #### Test the webhook from the command line
 This tests the default behavior, and includes the `-i` flag so we can see the CORS headers coming back from the server.
