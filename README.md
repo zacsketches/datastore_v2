@@ -28,7 +28,7 @@ This bash script is run as the EC2 `user_data` when the new VM is created. The p
 
 ## Helpful Command Line Foo
 #### Edit AWC CLI credentials
-Using `terraform plan|apply|destroy` rely on the login credentials stored in the AWS CLI. When you rotate access keys the following tools help.
+Using `terraform plan|apply|destroy` relies on the login credentials stored in the AWS CLI. When you rotate access keys the following tools help.
 ```
 vim ~/.aws/credentials
 ```

@@ -1,3 +1,13 @@
+terraform {
+  backend "s3" {
+    bucket         = "ezharbor-remote-tfstate" 
+    key            = "dev/compute/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "ezharbor-tfstate-lock"
+    encrypt        = true
+  }
+}
+
 provider "aws" {
   region = "us-east-1"
 }
