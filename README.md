@@ -1,14 +1,32 @@
 # Datastore V2
-This repo is the second iteration of creating an IaC driven AWS infrastructure for a very simple backend server I want to handle a test website built from https://github.com/zacsketches/form_v2.
+This repo is the second iteration of creating an IaC driven AWS infrastructure for a very simple webhook backend server I want to handle the page built from https://github.com/zacsketches/form_v2. The infrastructure is in three projects.
+1. Compute
+2. Persistent
+3. Bootstrap
 
+-----
+## Compute
+  The main project launched from the root directory uses the `compute` module to `destroy|apply` a new EC2 instance whenever changes are made to the webhook handler.
 
-## main.tf
-This terraform stands up a free tier EC2 instance using the credentials loaded into the AWS CLI on the developer's laptop. This EC2 instance provides the VM for the backend compute.
+### setup.sh
+This bash script is run as the EC2 `user_data` when the new VM is created by the `compute` module. The primary purpose of this script is to install Go and then build the microservice that serves as the webhook backend. The backend is cloned from https://github.com/zacsketches/webhook-handler. After `go build -o webhook-service` the new service is run under `systemd` control with restart enabled.
 
-## setup.sh
-This bash script is run as the EC2 `user_data` when the new VM is created. The primary purpose of this script is to install Go and then build the microservice that serves as the webhook backend. The backend is cloned from https://github.com/zacsketches/webhook-handler. After `go build -o webhook-service` the new service is run under `systemd` control with restart enabled.
+-----
+## Persistent
+This module is its own terraform project which needs to be called from the root of the `/persistent` directory. This project sets up the infrastructure that should **NOT** be destroyed (i.e. elastic IPs, VPCs, etc).
 
-## Helpful Command Line Foo
+-----
+## Bootstrap
+This module is also its own terraform project which needs to be run **BEFORE** anything else to create the remote state S3 and lock database. After running this plan the resources exist for the other modules to store their state and should be run in this order:
+1. The `/persistent` module from its own folder
+2. The main module from the project root which calls the `/compute` module
+
+After running Bootstrap and then Persistent, you should not need to run them again.
+
+-----
+## Helpful command line foo
+Here is some great stuff to cut and paste into the command line to drive testing of the infrastructure as it gets set up.
+
 #### Edit AWC CLI credentials
 Using `terraform plan|apply|destroy` relies on the login credentials stored in the AWS CLI. When you rotate access keys the following tools help.
 ```
