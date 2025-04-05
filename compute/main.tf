@@ -62,6 +62,12 @@ resource "aws_iam_role_policy" "backend_ec2_role_ecr" {
   })
 }
 
+# 3. Create the profile that is associated tothe role
+resource "aws_iam_instance_profile" "backend_ec2_profile" {
+  name = "backend-ec2-profile"
+  role = aws_iam_role.backend_ec2_role.name
+}
+
 
 resource "aws_instance" "backend_ec2" {
   availability_zone = "us-east-1a"
@@ -69,6 +75,7 @@ resource "aws_instance" "backend_ec2" {
   instance_type = "t2.micro"
   key_name      = "my-key-pair"
 
+  # 4. Finally, associate the profile with this instance
   iam_instance_profile = aws_iam_instance_profile.backend_ec2_profile.name
 
   tags = {
@@ -110,7 +117,25 @@ resource "aws_volume_attachment" "attach_readings_vol" {
 }
 
 # Set up security groups tightly associated with THIS instance.
-# Broad security groups for the environment belong in the persistent module.
+resource "aws_security_group" "allow_streamlit" {
+  name        = "allow_streamlit"
+  description = "Allow Streamlit app inbound traffic"
+
+  ingress {
+    from_port   = 8501
+    to_port     = 8501
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Allows access to the Streamlit app; restrict if needed
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_security_group" "allow_ssh_and_8080" {
   name        = "allow_ssh_and_8080"
   description = "Allow SSH and webhook inbound traffic"

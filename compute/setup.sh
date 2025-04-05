@@ -59,6 +59,11 @@ echo "alias readings='sqlite3 -header -column /mnt/readings/db/measurements.db \
 sudo usermod -aG docker ec2-user
 echo groups ec2-user
 
+# Start the docker daemon
+sudo systemctl daemon-reload
+sudo systemctl enable docker
+sudo systemctl start docker
+
 # Create the SQLite database
 mkdir -p "$DB_DIR"
 chown ec2-user:ec2-user "$DB_DIR"
@@ -122,11 +127,7 @@ WorkingDirectory=$APP_DIR
 WantedBy=multi-user.target
 EOL
 
-# Reload systemd, enable, and start services
+# Reload systemd, enable, and start the webhook.service
 sudo systemctl daemon-reload
-
-sudo systemctl enable docker
-sudo systemctl start docker
-
 sudo systemctl enable webhook.service
 sudo systemctl start webhook.service

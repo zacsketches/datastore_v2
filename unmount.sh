@@ -19,6 +19,9 @@ ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$EC2_USER@$EC2_HOST" bash -s <<EO
     exit 0
   fi
 
+  echo "Shutting down webhook.service"
+  sudo systemctl stop webhook.service
+
   echo "Unmounting $DEVICE_NAME from \$MOUNT_POINT..."
   sudo umount "$DEVICE_NAME"
 

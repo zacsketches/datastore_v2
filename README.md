@@ -52,6 +52,12 @@ Then delete the lines with the expired/deprecated access key and secret access k
 aws configure
 ```
 
+#### See if the AWS client can log into ECR
+With the EC2 associated to an IAM role the credentials should be in the instance's `aws` client.
+```
+aws ecr get-login-password --region us-east-1
+```
+
 #### Put the elastic IP into the environment
 Most of the command line foo below is dependent on the presence of an environment variable called `EIP`.
 ```
