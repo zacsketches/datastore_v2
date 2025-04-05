@@ -12,6 +12,22 @@ provider "aws" {
   region = "us-east-1"
 }
 
+data "terraform_remote_state" "remote" {
+  backend = "s3"
+  config = {
+    bucket         = "ezharbor-remote-tfstate"
+    key            = "dev/persistent/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "ezharbor-tfstate-lock"
+    encrypt        = true
+  }
+}
+
+resource "aws_eip_association" "webhook_association" {
+  instance_id   = aws_instance.backend_ec2.id
+  allocation_id = data.terraform_remote_state.remote.outputs.webhook_allocation_id
+}
+
 data "aws_ssm_parameter" "amzn2_latest" {
   name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
 }
@@ -35,12 +51,6 @@ resource "aws_instance" "backend_ec2" {
   root_block_device {
     volume_size = 8  # Root volume (8GB)
   }
-}
-
-# Associate the EIP to the EC2 instance
-resource "aws_eip_association" "backend_eip_assoc" {
-  instance_id   = aws_instance.backend_ec2.id
-  allocation_id = var.eip_allocation_id
 }
 
 # Set up security groups tightly associated with THIS instance.
@@ -73,5 +83,5 @@ resource "aws_security_group" "allow_ssh_and_8080" {
 
 output "webhook_ip" {
   description = "The elastic IP associated with the EC2 instance"
-  value = aws_eip_association.backend_eip_assoc.public_ip
+  value = aws_eip_association.webhook_association.public_ip
 }
