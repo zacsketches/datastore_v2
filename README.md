@@ -58,6 +58,13 @@ With the EC2 associated to an IAM role the credentials should be in the instance
 aws ecr get-login-password --region us-east-1
 ```
 
+#### Log docker into ECR
+aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+####
+IMAGE=$(docker image ls --format "{{.ID}}" | head -n 1)
+docker run -d -p 8501:8501 $IMAGE
+
 #### Put the elastic IP into the environment
 Most of the command line foo below is dependent on the presence of an environment variable called `EIP`.
 ```

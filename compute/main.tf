@@ -82,7 +82,7 @@ resource "aws_instance" "backend_ec2" {
     Name = "backend-instance-v2"
   }
 
-  security_groups = [aws_security_group.allow_ssh_and_8080.name]
+  security_groups = [aws_security_group.allow_ssh_and_8080.name, aws_security_group.allow_streamlit.name]
 
   # Run the setup script
   user_data = file("compute/setup.sh")
