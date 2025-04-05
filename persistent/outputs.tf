@@ -10,3 +10,13 @@ output "webhook_allocation_id" {
   description = "The allocation ID of the ez-harbor webhook Elastic IP"
   value       = aws_eip.ez_harbor_webhook_eip.allocation_id
 }
+
+// Output info needed to attach the volume to an instance
+output "readings_vol_info" {
+  description = "Details needed to attach the readings_vol EBS volume to an EC2 instance"
+  value = {
+    volume_id        = aws_ebs_volume.readings_vol.id
+    availability_zone = aws_ebs_volume.readings_vol.availability_zone
+    device_name      = "/dev/sdh"  # Standard Linux device name (adjust if needed)
+  }
+}

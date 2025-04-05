@@ -54,3 +54,18 @@ resource "aws_eip" "ez_harbor_webhook_eip" {
     prevent_destroy = true
   }
 }
+
+# Persistent storage for the SQLite database
+resource "aws_ebs_volume" "readings_vol" {
+  availability_zone = "us-east-1a"
+  size              = 2 #Gb
+  type              = "gp3" #affordable SSD storage approx $0.16 per month
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags = {
+    Name = "readings_vol"
+  }
+}

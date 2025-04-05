@@ -1,4 +1,4 @@
-data "terraform_remote_state" "remote" {
+data "terraform_remote_state" "persistent" {
   backend = "s3"
   config = {
     bucket         = "ezharbor-remote-tfstate"
@@ -11,7 +11,7 @@ data "terraform_remote_state" "remote" {
 
 resource "aws_eip_association" "webhook_association" {
   instance_id   = aws_instance.backend_ec2.id
-  allocation_id = data.terraform_remote_state.remote.outputs.webhook_allocation_id
+  allocation_id = data.terraform_remote_state.persistent.outputs.webhook_allocation_id
 }
 
 data "aws_ssm_parameter" "amzn2_latest" {
@@ -19,7 +19,7 @@ data "aws_ssm_parameter" "amzn2_latest" {
 }
 
 resource "aws_instance" "backend_ec2" {
-  availability_zone = "us-east-1a"  # Ensure this matches your instance's AZ
+  availability_zone = "us-east-1a"
   ami           = data.aws_ssm_parameter.amzn2_latest.value
   instance_type = "t2.micro"
   key_name      = "my-key-pair"
@@ -36,7 +36,20 @@ resource "aws_instance" "backend_ec2" {
   # Attach EBS volume
   root_block_device {
     volume_size = 8  # Root volume (8GB)
+
+    tags = {
+      Name = "webhook-backend-root-blk"
+    }
   }
+}
+
+# Attach the persistent volume to the ec2 instance
+resource "aws_volume_attachment" "attach_readings_vol" {
+  device_name = data.terraform_remote_state.persistent.outputs.readings_vol_info.device_name
+  volume_id   = data.terraform_remote_state.persistent.outputs.readings_vol_info.volume_id
+  instance_id = aws_instance.backend_ec2.id
+
+  force_detach = false
 }
 
 # Set up security groups tightly associated with THIS instance.

@@ -12,6 +12,38 @@ set -euxo pipefail
 sudo yum update -y
 sudo yum install -y golang git
 
+# Mount and format the persistent storage
+echo "Mounting the persistent file system"
+DEVICE="/dev/xvdh"
+MOUNT_POINT="/mnt/readings"
+FSTAB_ENTRY="$DEVICE $MOUNT_POINT xfs defaults,nofail 0 2"
+
+# Wait for the device to be attached
+while [ ! -b "$DEVICE" ]; do
+  echo "Waiting for EBS volume to be available at $DEVICE..."
+  sleep 5
+done
+
+# Create filesystem if one doesn't exist
+if ! file -s "$DEVICE" | grep -q 'filesystem'; then
+  echo "Creating filesystem on $DEVICE..."
+  mkfs -t xfs "$DEVICE"
+fi
+
+# Create the mount point if it doesn't exist
+mkdir -p "$MOUNT_POINT"
+
+# Mount the volume
+mount "$DEVICE" "$MOUNT_POINT"
+
+# Add to /etc/fstab only if not already present
+if ! grep -qs "$DEVICE" /etc/fstab; then
+  echo "$FSTAB_ENTRY" >> /etc/fstab
+  echo "Added mount to /etc/fstab"
+else
+  echo "Mount already exists in /etc/fstab, skipping."
+fi
+
 # GOPATH is required so later go commands can store module data
 export HOME=/home/ec2-user
 export GOPATH=${HOME}/go
@@ -33,6 +65,7 @@ fi
 cd "$APP_DIR"
 
 # Build the service using Go modules
+echo "Building the webhook service"
 go build -o "$BINARY_NAME" .
 
 # Move the binary to a directory in the system PATH
