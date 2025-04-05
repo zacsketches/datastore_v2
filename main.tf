@@ -19,7 +19,13 @@ resource "aws_ssm_parameter" "aws_account_id" {
   description = "AWS Account ID for ez-harbor infra"
   type        = "String"
   value       = var.aws_account_id
-  overwrite   = true
+}
+
+resource "aws_ssm_parameter" "aws_region" {
+  name        = "/ez-harbor/aws-region"
+  description = "AWS Account ID for ez-harbor infra"
+  type        = "String"
+  value       = var.aws_region
 }
 
 module "compute" {
