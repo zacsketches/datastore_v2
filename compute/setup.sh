@@ -67,7 +67,7 @@ sudo systemctl start docker
 
 export AWS_REGION=$(aws ssm get-parameter --name "/ez-harbor/aws-region" --query "Parameter.Value" --output text --region us-east-1)
 export AWS_ACCOUNT_ID=$(aws ssm get-parameter --name "/ez-harbor/aws-account-id" --query "Parameter.Value" --output text --region us-east-1)
-export $IMAGE=$(aws ssm get-parameter --name "/ez-harbor/graph-image" --query "Parameter.Value" --output text --region us-east-1)
+export IMAGE=$(aws ssm get-parameter --name "/ez-harbor/graph-image" --query "Parameter.Value" --output text --region us-east-1)
 
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 

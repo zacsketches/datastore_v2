@@ -88,3 +88,16 @@ resource "aws_ecr_repository" "chemistry_graph" {
   }
 }
 
+resource "aws_ssm_parameter" "aws_account_id" {
+  name        = "/ez-harbor/aws-account-id"
+  description = "AWS Account ID for ez-harbor infra"
+  type        = "String"
+  value       = var.aws_account_id
+}
+
+resource "aws_ssm_parameter" "aws_region" {
+  name        = "/ez-harbor/aws-region"
+  description = "AWS Account ID for ez-harbor infra"
+  type        = "String"
+  value       = var.aws_region
+}
