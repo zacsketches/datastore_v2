@@ -54,7 +54,10 @@ resource "aws_iam_role_policy" "backend_ec2_role_ecr" {
           "ecr:GetAuthorizationToken",
           "ecr:BatchCheckLayerAvailability",
           "ecr:GetDownloadUrlForLayer",
-          "ecr:BatchGetImage"
+          "ecr:BatchGetImage",
+          "ecr:ListImages",
+          "ecr:DescribeImages",
+          "ecr:DescribeRepositories"
         ],
         Resource = "*"
       },

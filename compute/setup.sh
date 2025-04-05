@@ -67,13 +67,15 @@ sudo systemctl start docker
 
 export AWS_REGION=$(aws ssm get-parameter --name "/ez-harbor/aws-region" --query "Parameter.Value" --output text --region us-east-1)
 export AWS_ACCOUNT_ID=$(aws ssm get-parameter --name "/ez-harbor/aws-account-id" --query "Parameter.Value" --output text --region us-east-1)
+export $IMAGE=$(aws ssm get-parameter --name "/ez-harbor/graph-image" --query "Parameter.Value" --output text --region us-east-1)
 
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-docker pull 574205320914.dkr.ecr.us-east-1.amazonaws.com/chemistry-graph:aad64959e6c6cbfc7b52439da4eae6bde6ac845c
+docker pull $IMAGE
 
 IMAGE=$(docker image ls --format "{{.ID}}" | head -n 1)
 docker run -d -p 8501:8501 $IMAGE
+echo "graph container is running"
 
 ##############################
 #  Install the SQL database  #
