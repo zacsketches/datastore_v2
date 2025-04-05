@@ -1,24 +1,6 @@
 # Datastore V2
 This repo is the second iteration of creating an IaC driven AWS infrastructure for a very simple backend server I want to handle a test website built from https://github.com/zacsketches/form_v2.
 
-terraform/
-├── bootstrap/          # This is its own terraform project OUT of the main module.
-│   ├── main.tf         # Defines backend resources like S3 bucket, DynamoDB table, etc.
-│   ├── variables.tf    # Variables specific to backend configuration.
-│   ├── outputs.tf      # Outputs (if needed) for other components to reference.
-│   └── terraform.tfvars # Backend-specific variable values.
-├── compute/
-│   ├── main.tf         # Compute-related resources (e.g., VMs, containers, etc.).
-│   ├── variables.tf    # Variables for compute resources.
-│   ├── outputs.tf      # Outputs for compute module.
-│   └── terraform.tfvars # Compute-specific variable values.
-├── persistent/
-│   ├── main.tf         # Persistent storage resources (e.g., databases, storage accounts).
-│   ├── variables.tf    # Variables for persistent infrastructure.
-│   ├── outputs.tf      # Outputs for persistent module.
-│   └── terraform.tfvars # Persistent-specific variable values.
-└── main.tf             # Root configuration that ties modules together (optional).
-
 
 ## main.tf
 This terraform stands up a free tier EC2 instance using the credentials loaded into the AWS CLI on the developer's laptop. This EC2 instance provides the VM for the backend compute.

@@ -80,8 +80,3 @@ resource "aws_security_group" "allow_ssh_and_8080" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
-output "webhook_ip" {
-  description = "The elastic IP associated with the EC2 instance"
-  value = aws_eip_association.webhook_association.public_ip
-}
