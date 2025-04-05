@@ -52,10 +52,13 @@ Then delete the lines with the expired/deprecated access key and secret access k
 aws configure
 ```
 
-#### See if the AWS client can log into ECR
-With the EC2 associated to an IAM role the credentials should be in the instance's `aws` client.
+#### Get the AWS role form the cli
 ```
-aws ecr get-login-password --region us-east-1
+aws sts get-caller-identity
+```
+Then see what permissions this identity has
+```
+aws iam list-attached-role-policies --role-name $ROLE
 ```
 
 #### Log docker into ECR
