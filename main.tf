@@ -26,7 +26,7 @@ resource "aws_instance" "backend_ec2" {
     Name = "backend-instance-v2"
   }
 
-  security_groups = [aws_security_group.allow_ssh.name]
+  security_groups = [aws_security_group.allow_ssh_and_8080.name]
 
   # Run the setup script
   user_data = file("setup.sh")
@@ -43,9 +43,10 @@ resource "aws_eip_association" "backend_eip_assoc" {
   allocation_id = var.eip_allocation_id
 }
 
-# Set up security groups
-resource "aws_security_group" "allow_ssh" {
-  name        = "allow_ssh"
+# Set up security groups tightly associated with THIS instance.
+# Broad security groups for the environment belong in the persistent module.
+resource "aws_security_group" "allow_ssh_and_8080" {
+  name        = "allow_ssh_and_8080"
   description = "Allow SSH and webhook inbound traffic"
 
   ingress {
