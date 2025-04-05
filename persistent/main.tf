@@ -28,7 +28,11 @@ resource "aws_vpc" "ez_harbor_vpc" {
   instance_tenancy     = "default"
 
   tags = {
-    Name        = "ez-harbor-vpc"
+    Name = "ez-harbor-vpc"
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 }
 
@@ -38,6 +42,10 @@ resource "aws_internet_gateway" "ez_harbor_igw" {
   tags = {
     Name = "ez-harbor-igw"
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_eip" "ez_harbor_webhook_eip" {
@@ -45,5 +53,9 @@ resource "aws_eip" "ez_harbor_webhook_eip" {
 
   tags = {
     Name = "ez-harbor-webhook-eip"
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 }
