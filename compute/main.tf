@@ -57,6 +57,15 @@ resource "aws_iam_role_policy" "backend_ec2_role_ecr" {
           "ecr:BatchGetImage"
         ],
         Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:DescribeParameters"
+        ],
+        Resource = "*"
       }
     ]
   })

@@ -1,0 +1,4 @@
+# This file is pushed to version control to show the format of the 
+# .gitignore'd terraform.tfvars file that must be in local storage
+# for the IaC to function.
+aws_account_id = <AWS_ACCOUNT_ID>
