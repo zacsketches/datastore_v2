@@ -27,6 +27,12 @@ After running Bootstrap and then Persistent, you should not need to run them aga
 ## Helpful command line foo
 Here is some great stuff to cut and paste into the command line to drive testing of the infrastructure as it gets set up.
 
+#### Swap out an old EC2 for a new one
+The bash script `swap.sh` takes care of it all through terraform.
+```
+./swap.sh
+```
+
 #### Edit AWC CLI credentials
 Using `terraform plan|apply|destroy` relies on the login credentials stored in the AWS CLI. When you rotate access keys the following tools help.
 ```
