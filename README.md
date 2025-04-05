@@ -33,6 +33,15 @@ The bash script `swap.sh` takes care of it all through terraform.
 ./swap.sh
 ```
 
+#### Check to make sure the SQLite database has persisted
+```
+sqlite3 /mnt/readings/db/readings.db ".schema measurements_data"
+```
+We can also check the stats on the db
+```
+stat /mnt/readings/db/readings.db
+```
+
 #### Edit AWC CLI credentials
 Using `terraform plan|apply|destroy` relies on the login credentials stored in the AWS CLI. When you rotate access keys the following tools help.
 ```

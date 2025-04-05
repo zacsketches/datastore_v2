@@ -1,5 +1,10 @@
 #!/bin/bash
 set -e
+echo "------------------------------"
+echo "Unmounting the block storage..."
+echo "------------------------------"
+
+./unmount.sh
 
 echo "------------------------------"
 echo "Starting Terraform destroy..."

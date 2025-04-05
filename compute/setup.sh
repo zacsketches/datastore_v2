@@ -17,6 +17,8 @@ echo "Mounting the persistent file system"
 DEVICE="/dev/xvdh"
 MOUNT_POINT="/mnt/readings"
 FSTAB_ENTRY="$DEVICE $MOUNT_POINT xfs defaults,nofail 0 2"
+DB_DIR="$MOUNT_POINT/db"
+DB_FILE="$DB_DIR/readings.db"
 
 # Wait for the device to be attached
 while [ ! -b "$DEVICE" ]; do
@@ -43,6 +45,26 @@ if ! grep -qs "$DEVICE" /etc/fstab; then
 else
   echo "Mount already exists in /etc/fstab, skipping."
 fi
+
+# Create the SQLite database
+mkdir -p "$DB_DIR"
+chown ec2-user:ec2-user "$DB_DIR"
+
+# Install SQLite if not available
+command -v sqlite3 >/dev/null 2>&1 || yum install -y sqlite
+
+# Create the measurements table if it does not already exist
+sqlite3 "$DB_FILE" <<EOF
+CREATE TABLE IF NOT EXISTS measurements_data (
+  id INTEGER PRIMARY KEY,
+  acid_demand INTEGER,
+  chlorine REAL,
+  ph REAL,
+  total_alkalinity INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+EOF
+
 
 # GOPATH is required so later go commands can store module data
 export HOME=/home/ec2-user

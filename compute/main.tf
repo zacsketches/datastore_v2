@@ -38,7 +38,7 @@ resource "aws_instance" "backend_ec2" {
     volume_size = 8  # Root volume (8GB)
 
     tags = {
-      Name = "webhook-backend-root-blk"
+      Name = "webhook-root-vol"
     }
   }
 }
@@ -50,6 +50,16 @@ resource "aws_volume_attachment" "attach_readings_vol" {
   instance_id = aws_instance.backend_ec2.id
 
   force_detach = false
+
+  # Also hoping this helps a little
+  depends_on = [
+    aws_instance.backend_ec2
+  ]
+
+  # This can help since the device name is changed when it is mounted inside the volume
+  lifecycle {
+    ignore_changes = [device_name]
+  }
 }
 
 # Set up security groups tightly associated with THIS instance.
