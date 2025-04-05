@@ -18,7 +18,7 @@ DEVICE="/dev/xvdh"
 MOUNT_POINT="/mnt/readings"
 FSTAB_ENTRY="$DEVICE $MOUNT_POINT xfs defaults,nofail 0 2"
 DB_DIR="$MOUNT_POINT/db"
-DB_FILE="$DB_DIR/readings.db"
+DB_FILE="$DB_DIR/measurements.db"
 
 # Wait for the device to be attached
 while [ ! -b "$DEVICE" ]; do
@@ -51,8 +51,10 @@ fi
 # yet when the instance is first logged into.
 echo "Updating ec2-user's .bashrc"
 echo "alias follow='journalctl -u webhook.service -f'" >> /home/ec2-user/.bashrc
-echo "alias cloud-follow='sudo tail -f /var/log/cloud-init-output.log'"
-echo "alias cloud-cat='sudo cat /var/log/cloud-init-output.log'
+echo "alias cloud-follow='sudo tail -f /var/log/cloud-init-output.log'" >> /home/ec2-user/.bashrc
+echo "alias cloud-cat='sudo cat /var/log/cloud-init-output.log'" >> /home/ec2-user/.bashrc
+echo "alias readings='sqlite3 -header -column /mnt/readings/db/measurements.db \"SELECT * FROM water_tests;\"'" >> /home/ec2-user/.bashrc
+
 
 # Create the SQLite database
 mkdir -p "$DB_DIR"
@@ -63,13 +65,13 @@ command -v sqlite3 >/dev/null 2>&1 || yum install -y sqlite
 
 # Create the measurements table if it does not already exist
 sqlite3 "$DB_FILE" <<EOF
-CREATE TABLE IF NOT EXISTS measurements_data (
-  id INTEGER PRIMARY KEY,
-  acid_demand INTEGER,
-  chlorine REAL,
-  ph REAL,
-  total_alkalinity INTEGER,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS water_tests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    testDate TEXT NOT NULL,
+    chlorine REAL NOT NULL,
+    ph REAL NOT NULL,
+    acidDemand INTEGER,
+    totalAlkalinity INTEGER
 );
 EOF
 
