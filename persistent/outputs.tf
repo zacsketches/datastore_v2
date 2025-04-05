@@ -20,3 +20,9 @@ output "readings_vol_info" {
     device_name      = "/dev/sdh"  # Standard Linux device name (adjust if needed)
   }
 }
+
+// Output of the Elastic Container Registry for the graph container
+output "chemistry_graph_ecr_url" {
+  description = "The URL for the Chemistry Graph ECR repository"
+  value       = aws_ecr_repository.chemistry_graph.repository_url
+}

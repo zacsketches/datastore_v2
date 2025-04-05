@@ -69,3 +69,22 @@ resource "aws_ebs_volume" "readings_vol" {
     Name = "readings_vol"
   }
 }
+
+// Container registry for the streamlit container
+resource "aws_ecr_repository" "chemistry_graph" {
+  name = "chemistry-graph"
+
+  image_tag_mutability = "IMMUTABLE"  # Change to MUTABLE if desired later
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags = {
+    Name = "ez-harbor-registry"
+  }
+}
+

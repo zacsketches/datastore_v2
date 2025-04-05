@@ -18,11 +18,58 @@ data "aws_ssm_parameter" "amzn2_latest" {
   name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
 }
 
+#######################
+# Set up EC2 IAM      #
+#######################
+
+# 1. Define the IAM Role with EC2 trust policy
+resource "aws_iam_role" "backend_ec2_role" {
+  name = "backend-ec2-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action    = "sts:AssumeRole",
+        Effect    = "Allow",
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# 2. Attach an inline policy for ECR access to the role
+resource "aws_iam_role_policy" "backend_ec2_role_ecr" {
+  name = "backend-ec2-ecr-access"
+  role = aws_iam_role.backend_ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+
 resource "aws_instance" "backend_ec2" {
   availability_zone = "us-east-1a"
   ami           = data.aws_ssm_parameter.amzn2_latest.value
   instance_type = "t2.micro"
   key_name      = "my-key-pair"
+
+  iam_instance_profile = aws_iam_instance_profile.backend_ec2_profile.name
 
   tags = {
     Name = "backend-instance-v2"

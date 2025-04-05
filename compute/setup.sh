@@ -10,7 +10,7 @@ set -euxo pipefail
 
 # Update package index and install dependencies using yum
 sudo yum update -y
-sudo yum install -y golang git
+sudo yum install -y golang git docker
 
 # Mount and format the persistent storage
 echo "Mounting the persistent file system"
@@ -55,6 +55,9 @@ echo "alias cloud-follow='sudo tail -f /var/log/cloud-init-output.log'" >> /home
 echo "alias cloud-cat='sudo cat /var/log/cloud-init-output.log'" >> /home/ec2-user/.bashrc
 echo "alias readings='sqlite3 -header -column /mnt/readings/db/measurements.db \"SELECT * FROM water_tests;\"'" >> /home/ec2-user/.bashrc
 
+# Add the ec-user to the docker group so comms with the docker daemon work
+sudo usermod -aG docker ec2-user
+echo groups ec2-user
 
 # Create the SQLite database
 mkdir -p "$DB_DIR"
@@ -119,7 +122,11 @@ WorkingDirectory=$APP_DIR
 WantedBy=multi-user.target
 EOL
 
-# Reload systemd, enable, and start the webhook service
+# Reload systemd, enable, and start services
 sudo systemctl daemon-reload
+
+sudo systemctl enable docker
+sudo systemctl start docker
+
 sudo systemctl enable webhook.service
 sudo systemctl start webhook.service
