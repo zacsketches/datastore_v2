@@ -9,7 +9,7 @@ This repo is the second iteration of creating an IaC driven AWS infrastructure f
   The main project launched from the root directory uses the `compute` module to `destroy|apply` a new EC2 instance whenever changes are made to the webhook handler.
 
 ### setup.sh
-This bash script is run as the EC2 `user_data` when the new VM is created by the `compute` module. The primary purpose of this script is to install Go and then build the microservice that serves as the webhook backend. The backend is cloned from https://github.com/zacsketches/webhook-handler. After `go build -o webhook-service` the new service is run under `systemd` control with restart enabled.
+This bash script is run as the EC2 `user_data` when the new VM is created by the `compute` module. The primary purpose of this script is to install Go and then build the microservice that serves as the webhook backend. The backend is cloned from https://github.com/zacsketches/webhook-handler. After `go build -o webhook-service` the new service is run under `systemd` control with restart enabled. This script also puts a few convenient aliases into the `ec2-user .bashrc` file to `follow` the `journald` log for the `webhook.service` as well as `cloud-follow` and `cloud-cat` to respectively follow and list the instance initialization at `/var/log/cloud-init-output.log`.
 
 -----
 ## Persistent
@@ -57,23 +57,30 @@ Most of the command line foo below is dependent on the presence of an environmen
 ```
 export EIP=$(terraform output -raw webhook_ip)
 ```
+Alternatively, use the utility program after adding `chmod +x` to it after cloning.
+```
+source ip.sh
+```
+#### Log into the backend via ssh
+With the `-o StrictHostKeyChecking=no` this bypasses a little safety for the convenience of logging right into the newly created baceknd EC2's when the backend infra has been upgraded since the last login
+```
+ssh -i my-key-pair.pem -o StrictHostKeyChecking=no ec2-user@$EIP
+```
+Alternatively, use the utility program after exporting `EIP` into the shell environment.
+```
+./login.sh
+```
 
 #### Clear the EC2 fingerprint hash
-When the background EC2 changes, but the Elastic IP stays the same, the SSH client thinks that there is a man in the middle attack. Get rid of the old fingerprint before attempting to log in.
+When the background EC2 changes, but the Elastic IP stays the same, the SSH client thinks that there is a man in the middle attack. If you use `ssh` with the ill advised option `-o StrictHostKeyChecking=no` like it's shortcutted above this error will be ignored.  In production **DO NOT USE THIS OPTION** and tackle the real issue by getting rid of the old fingerprint before attempting to log in.
 ```
 ssh-keygen -R $EIP
 ```
 
-#### Log into the backend via ssh
-This usually requires removing the old fingerprint if the backend infra has been upgraded since the last login
-```
-ssh -i my-key-pair.pem ec2-user@$EIP
-```
-
 #### Follow the journald log of the web service
-This command implements the traditional `tail -f <log>` functioality for `journald`
+This command implements the traditional `tail -f <log>` functioality for `journald` and does not need `sudo` because the `webhook.service` belongs to `ec2-user`.
 ```
-sudo journalctl -u webhook.service -f
+journalctl -u webhook.service -f
 ```
 
 #### Inspect the system log when the EC2 was built

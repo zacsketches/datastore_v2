@@ -46,6 +46,14 @@ else
   echo "Mount already exists in /etc/fstab, skipping."
 fi
 
+# Update ec2-user's bash profile with a few aliases. Note that the webhook
+# service is the last thing that gets set up. So, it might not be available
+# yet when the instance is first logged into.
+echo "Updating ec2-user's .bashrc"
+echo "alias follow='journalctl -u webhook.service -f'" >> /home/ec2-user/.bashrc
+echo "alias cloud-follow='sudo tail -f /var/log/cloud-init-output.log'"
+echo "alias cloud-cat='sudo cat /var/log/cloud-init-output.log'
+
 # Create the SQLite database
 mkdir -p "$DB_DIR"
 chown ec2-user:ec2-user "$DB_DIR"
