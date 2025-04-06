@@ -52,6 +52,11 @@ echo "alias follow='journalctl -u webhook.service -f'" >> /home/ec2-user/.bashrc
 echo "alias cloud-follow='sudo tail -f /var/log/cloud-init-output.log'" >> /home/ec2-user/.bashrc
 echo "alias cloud-cat='sudo cat /var/log/cloud-init-output.log'" >> /home/ec2-user/.bashrc
 echo "alias readings='sqlite3 -header -column /mnt/readings/db/measurements.db \"SELECT * FROM water_tests;\"'" >> /home/ec2-user/.bashrc
+echo "alias load='sqlite3 /mnt/readings/db/measurements.db < /home/ec2-user/data.csv'" >> /home/ec2-user/.bashrc
+
+# sqlite> DELETE FROM water_tests;
+# sqlite> VACUUM;
+# sqlite> .exit
 
 # Add the ec-user to the docker group so comms with the docker daemon work
 sudo usermod -aG docker ec2-user
@@ -146,3 +151,31 @@ EOL
 sudo systemctl daemon-reload
 sudo systemctl enable webhook.service
 sudo systemctl start webhook.service
+
+#################
+# sql data file #
+#################
+cat <<EOF > /home/ec2-user/data.csv
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-01', 3.2, 7.4, 5, 12);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-02', 3.0, 7.5, 5.5, 12.5);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-03', 2.8, 7.6, 6, 13);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-04', 3.5, 7.3, 4.5, 11);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-05', 3.1, 7.4, 5, 11.5);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-06', 3.0, 7.5, 5.2, 11.8);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-07', 2.9, 7.6, 5.8, 12.2);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-08', 3.3, 7.3, 4.8, 11.7);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-09', 3.6, 7.5, 4.6, 12.4);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-10', 2.7, 7.7, 6.3, 12.8);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-11', 3.2, 7.4, 5, 12);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-12', 3.0, 7.6, 5.7, 13);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-13', 3.1, 7.3, 5.5, 11.5);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-14', 3.5, 7.5, 5.2, 12.2);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-15', 2.9, 7.4, 6, 12.5);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-16', 3.2, 7.6, 5, 11.9);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-17', 3.3, 7.5, 5.3, 12.1);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-18', 3.4, 7.2, 4.7, 12.7);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-19', 3.0, 7.7, 5.6, 12.3);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-20', 2.8, 7.5, 6.2, 13);
+EOF
+
+echo "SQL commands have been written to /home/ec2-user/data.csv."
