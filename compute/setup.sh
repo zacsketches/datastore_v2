@@ -26,6 +26,11 @@ export GOPATH=${HOME}/go
 # Define the database file path
 DB=/mnt/readings/measurements.db
 SQL_DATA=$HOME/data.sql
+# Pull the SSM parameters
+AWS_REGION=$(aws ssm get-parameter --name "/ez-harbor/aws-region" --query "Parameter.Value" --output text --region us-east-1)
+AWS_ACCOUNT_ID=$(aws ssm get-parameter --name "/ez-harbor/aws-account-id" --query "Parameter.Value" --output text --region us-east-1)
+IMAGE=$(aws ssm get-parameter --name "/ez-harbor/graph-image" --query "Parameter.Value" --output text --region us-east-1)
+EIP=$(aws ssm get-parameter --name "/ez-harbor/elastic-ip" --query "Parameter.Value" --output text --region us-east-1)
 
 # Wait for the device to be attached
 while [ ! -b "$DEVICE" ]; do
@@ -75,11 +80,6 @@ echo groups ec2-user
 sudo systemctl daemon-reload
 sudo systemctl enable docker
 sudo systemctl start docker
-
-AWS_REGION=$(aws ssm get-parameter --name "/ez-harbor/aws-region" --query "Parameter.Value" --output text --region us-east-1)
-AWS_ACCOUNT_ID=$(aws ssm get-parameter --name "/ez-harbor/aws-account-id" --query "Parameter.Value" --output text --region us-east-1)
-IMAGE=$(aws ssm get-parameter --name "/ez-harbor/graph-image" --query "Parameter.Value" --output text --region us-east-1)
-EIP=$(aws ssm get-parameter --name "/ez-harbor/elastic-ip" --query "Parameter.Value" --output text --region us-east-1)
 
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
