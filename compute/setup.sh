@@ -20,6 +20,12 @@ echo "Mounting the persistent file system"
 DEVICE="/dev/xvdh"
 MOUNT_POINT="/mnt/readings"
 FSTAB_ENTRY="$DEVICE $MOUNT_POINT xfs defaults,nofail 0 2"
+# GOPATH is required later go commands can store module data
+HOME=/home/ec2-user
+GOPATH=${HOME}/go
+# Define the database file path
+DB=/mnt/readings/measurements.db
+SQL_DATA=$HOME/data.sql
 
 # Wait for the device to be attached
 while [ ! -b "$DEVICE" ]; do
@@ -51,8 +57,8 @@ echo "Updating ec2-user's .bashrc"
 echo "alias follow='journalctl -u webhook.service -f'" >> /home/ec2-user/.bashrc
 echo "alias cloud-follow='sudo tail -f /var/log/cloud-init-output.log'" >> /home/ec2-user/.bashrc
 echo "alias cloud-cat='sudo cat /var/log/cloud-init-output.log'" >> /home/ec2-user/.bashrc
-echo "alias readings='sqlite3 -header -column /mnt/readings/db/measurements.db \"SELECT * FROM water_tests;\"'" >> /home/ec2-user/.bashrc
-echo "alias load='sqlite3 /mnt/readings/db/measurements.db < /home/ec2-user/data.csv'" >> /home/ec2-user/.bashrc
+echo "alias readings='sqlite3 -header -column $DB \"SELECT * FROM water_tests;\"'" >> /home/ec2-user/.bashrc
+echo "alias load='sqlite3 DB < /home/ec2-user/data.csv'" >> /home/ec2-user/.bashrc
 
 # sqlite> DELETE FROM water_tests;
 # sqlite> VACUUM;
@@ -85,9 +91,6 @@ echo "graph container is running"
 ##############################
 #  Install the SQL database  #
 ##############################
-# Define the database file path
-export DB=/mnt/readings/measurements.db
-
 # Check if the database file exists
 if [ -f "$DB" ]; then
     echo "Found database at $DB. Proceeding with chown..."
@@ -129,11 +132,6 @@ echo "Database setup and table creation completed."
 ###############################
 #  Build the webhook service  #
 ###############################
-# GOPATH is required so later go commands can store module data
-export HOME=/home/ec2-user
-export GOPATH=${HOME}/go
-echo $GOPATH
-
 # Define variables
 REPO_URL="https://github.com/zacsketches/webhook-handler.git"  # Replace with your repo URL
 APP_DIR="/home/ec2-user/webhook-handler"  # Change as needed (default user for Amazon Linux 2 is ec2-user)
@@ -176,7 +174,7 @@ sudo systemctl start webhook.service
 #################
 # sql data file #
 #################
-cat <<EOF > /home/ec2-user/data.sql
+cat <<EOF > $SQL_DATA
 INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-01', 3.2, 7.4, 5, 12);
 INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-02', 3.0, 7.5, ROUND(5.5), ROUND(12.5));
 INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-03', 2.8, 7.6, 6, 13);
@@ -199,4 +197,4 @@ INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VA
 INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-20', 2.8, 7.5, ROUND(6.2), 13);
 EOF
 
-echo "SQL commands have been written to /home/ec2-user/data.csv."
+echo "SQL commands have been written to $SQL_DATA."
