@@ -85,17 +85,34 @@ echo "graph container is running"
 ##############################
 #  Install the SQL database  #
 ##############################
-DB_DIR="$MOUNT_POINT/db"
-DB_FILE="$DB_DIR/measurements.db"
-# Create the SQLite database
-mkdir -p "$DB_DIR"
-chown ec2-user:ec2-user "$DB_DIR"
+# Define the database file path
+export DB=/mnt/readings/measurements.db
+
+# Check if the database file exists
+if [ -f "$DB" ]; then
+    echo "Found database at $DB. Proceeding with chown..."
+else
+    echo "Database file $DB not found. Creating the file..."
+    touch "$DB"
+    echo "Database file $DB created."
+fi
+
+# Change ownership to ec2-user
+chown ec2-user:ec2-user "$DB"
+echo "Ownership of $DB has been set to ec2-user."
 
 # Install SQLite if not available
-command -v sqlite3 >/dev/null 2>&1 || yum install -y sqlite
+echo "Checking if sqlite3 is installed..."
+if ! command -v sqlite3 >/dev/null 2>&1; then
+    echo "SQLite3 not found. Installing SQLite..."
+    yum install -y sqlite
+else
+    echo "SQLite3 is already installed."
+fi
 
 # Create the measurements table if it does not already exist
-sqlite3 "$DB_FILE" <<EOF
+echo "Creating the 'water_tests' table if it doesn't exist..."
+sqlite3 "$DB" <<EOF
 CREATE TABLE IF NOT EXISTS water_tests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     testDate TEXT NOT NULL,
@@ -105,6 +122,9 @@ CREATE TABLE IF NOT EXISTS water_tests (
     totalAlkalinity INTEGER
 );
 EOF
+
+echo "Database setup and table creation completed."
+
 
 ###############################
 #  Build the webhook service  #
@@ -143,6 +163,7 @@ ExecStart=/usr/local/bin/$BINARY_NAME
 Restart=always
 User=ec2-user
 WorkingDirectory=$APP_DIR
+Environment="READINGS_DB=$DB"
 
 [Install]
 WantedBy=multi-user.target
@@ -155,27 +176,27 @@ sudo systemctl start webhook.service
 #################
 # sql data file #
 #################
-cat <<EOF > /home/ec2-user/data.csv
+cat <<EOF > /home/ec2-user/data.sql
 INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-01', 3.2, 7.4, 5, 12);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-02', 3.0, 7.5, 5.5, 12.5);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-02', 3.0, 7.5, ROUND(5.5), ROUND(12.5));
 INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-03', 2.8, 7.6, 6, 13);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-04', 3.5, 7.3, 4.5, 11);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-05', 3.1, 7.4, 5, 11.5);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-06', 3.0, 7.5, 5.2, 11.8);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-07', 2.9, 7.6, 5.8, 12.2);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-08', 3.3, 7.3, 4.8, 11.7);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-09', 3.6, 7.5, 4.6, 12.4);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-10', 2.7, 7.7, 6.3, 12.8);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-04', 3.5, 7.3, ROUND(4.5), 11);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-05', 3.1, 7.4, 5, ROUND(11.5));
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-06', 3.0, 7.5, ROUND(5.2), ROUND(11.8));
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-07', 2.9, 7.6, ROUND(5.8), ROUND(12.2));
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-08', 3.3, 7.3, ROUND(4.8), ROUND(11.7));
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-09', 3.6, 7.5, ROUND(4.6), ROUND(12.4));
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-10', 2.7, 7.7, ROUND(6.3), ROUND(12.8));
 INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-11', 3.2, 7.4, 5, 12);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-12', 3.0, 7.6, 5.7, 13);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-13', 3.1, 7.3, 5.5, 11.5);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-14', 3.5, 7.5, 5.2, 12.2);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-15', 2.9, 7.4, 6, 12.5);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-16', 3.2, 7.6, 5, 11.9);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-17', 3.3, 7.5, 5.3, 12.1);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-18', 3.4, 7.2, 4.7, 12.7);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-19', 3.0, 7.7, 5.6, 12.3);
-INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-20', 2.8, 7.5, 6.2, 13);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-12', 3.0, 7.6, ROUND(5.7), 13);
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-13', 3.1, 7.3, ROUND(5.5), ROUND(11.5));
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-14', 3.5, 7.5, ROUND(5.2), ROUND(12.2));
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-15', 2.9, 7.4, 6, ROUND(12.5));
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-16', 3.2, 7.6, 5, ROUND(11.9));
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-17', 3.3, 7.5, ROUND(5.3), ROUND(12.1));
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-18', 3.4, 7.2, ROUND(4.7), ROUND(12.7));
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-19', 3.0, 7.7, ROUND(5.6), ROUND(12.3));
+INSERT INTO water_tests (testDate, chlorine, ph, acidDemand, totalAlkalinity) VALUES ('2025-04-20', 2.8, 7.5, ROUND(6.2), 13);
 EOF
 
 echo "SQL commands have been written to /home/ec2-user/data.csv."
