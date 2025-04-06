@@ -101,3 +101,10 @@ resource "aws_ssm_parameter" "aws_region" {
   type        = "String"
   value       = var.aws_region
 }
+
+resource "aws_ssm_parameter" "elastic_ip" {
+  name        = "/ex-harbor/elastic-ip"
+  type        = "String"
+  value       = aws_eip.ez_harbor_webhook_eip.public_ip
+  description = "Elastic IP for the EZ Harbor backend"
+}

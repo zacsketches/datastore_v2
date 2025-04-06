@@ -17,15 +17,15 @@ sudo yum install -y golang git docker
 ####################
 # Mount and format the persistent storage
 echo "Mounting the persistent file system"
-DEVICE="/dev/xvdh"
-MOUNT_POINT="/mnt/readings"
-FSTAB_ENTRY="$DEVICE $MOUNT_POINT xfs defaults,nofail 0 2"
+export DEVICE="/dev/xvdh"
+export MOUNT_POINT="/mnt/readings"
+export FSTAB_ENTRY="$DEVICE $MOUNT_POINT xfs defaults,nofail 0 2"
 # GOPATH is required later go commands can store module data
-HOME=/home/ec2-user
-GOPATH=${HOME}/go
+export HOME=/home/ec2-user
+export GOPATH=${HOME}/go
 # Define the database file path
-DB=/mnt/readings/measurements.db
-SQL_DATA=$HOME/data.sql
+export DB=/mnt/readings/measurements.db
+export SQL_DATA=$HOME/data.sql
 
 # Wait for the device to be attached
 while [ ! -b "$DEVICE" ]; do
@@ -79,13 +79,15 @@ sudo systemctl start docker
 export AWS_REGION=$(aws ssm get-parameter --name "/ez-harbor/aws-region" --query "Parameter.Value" --output text --region us-east-1)
 export AWS_ACCOUNT_ID=$(aws ssm get-parameter --name "/ez-harbor/aws-account-id" --query "Parameter.Value" --output text --region us-east-1)
 export IMAGE=$(aws ssm get-parameter --name "/ez-harbor/graph-image" --query "Parameter.Value" --output text --region us-east-1)
+export EIP=$(aws ssm get-parameter --name "/ez-harbor/elastic-ip" --query "Parameter.Value" --output text --region us-east-1)
 
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
 docker pull $IMAGE
-
-IMAGE=$(docker image ls --format "{{.ID}}" | head -n 1)
-docker run -d -p 8501:8501 $IMAGE
+export READINGS_API=http://$EIP:8080/readings
+echo "The READINGS_API is: $READINGS_API"
+export IMAGE=$(docker image ls --format "{{.ID}}" | head -n 1)
+docker run -d -e READINGS_API=$READINGS_API -p 8501:8501 $IMAGE
 echo "graph container is running"
 
 ##############################
